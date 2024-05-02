@@ -30,13 +30,23 @@
 
 \begin{document}
 \begin{abstract}
-Approved client-server authentication mechanisms are described for the
-IVOA single-sign-on profile: No Authentication; HTTP Basic
-Authentication; TLS with passwords; TLS with client certificates;
-Cookies; Open Authentication; Security Assertion Markup Language;
-OpenID. Normative rules are given for the implementation of these
-mechanisms, mainly by reference to pre-existing standards. The
-Authorization mechanisms are out of the scope of this document.
+%[old begin]
+%Approved client-server authentication mechanisms are described for the
+%IVOA single-sign-on prole:
+%No Authentication; HTTP Basic Authenti-
+%cation; TLS with passwords; TLS with client certicates; Cookies; Open
+%Authentication; Security Assertion Markup Language; OpenID. Normative
+%rules are given for the implementation of these mechanisms, mainly by ref-
+%erence to pre-existing standards. The Authorization mechanisms are out of
+%the scope of this document.
+%[old end]
+
+A description is given of how an existing standard should be applied 
+in an IVOA application to support single sign-on capabilities.
+Approved authentication mechanisms for use in the IVOA-SSO are listed
+referring to existing security standards (i.e. IETF's) and the
+authentication process through an IVOA challenge-response 
+authentication protocol is detailed.
 \end{abstract}
 
 \section*{Acknowledgments}
@@ -70,29 +80,50 @@ infrastructure that enable VO applications.
 
 
 \section{Introduction}
-IVOA's single-sign-on architecture is a system in which users assign
+
+IVOA's single-sign-on architecture is a system in which users, 
+authenticated through existing security standards (i.e. IETF's), assign
 cryptographic credentials to user agents so that the agents may act with
-the user's identity and access rights. This standard describes how
-agents use those credentials to authenticate the user's identity in
-requests to services. This standard describes also the authentication
-mechanism of an application or a service making a call (on behalf of
-someone or something else) to an API or to another service.
-This document describes how clients can discover and use authentication
-mechansims supported by a service, and how services advertise their
-support of those authentication mechanisms. Additionally, it conveys a
-{\em profile} of existing security standards; that is, it describes how
-an existing standard should be applied in an IVOA application to support
-single sign-on capabilities in the IVOA. In the following sections, we
-make specific references to details spelled out in these standards. For
-the purposes of validating against this standard, those referenced
-documents should be consulted for a full explanation of those details.
+the user's identity and access rights. 
+
+This IVOA standard describes
+%\begin{itemize}
+%    \textcolor{red}{Editor's note: should be removed? Need confirmation.
+%    \item describes how an existing standard should be applied in an IVOA 
+%    application to support single sign-on capabilities;
+%    \item gives a description of}
+         \begin{itemize}
+              \item how clients can discover and use authentication 
+                    mechanisms supported by a service
+             \item how services advertise their support of those 
+                    authentication mechanisms
+	     \item how an existing standard should be applied in an IVOA 
+              application to support single sign-on capabilities
+              %\item how agents use those credentials to authenticate 
+              %the user's identity in requests to services
+              \item the authentication mechanism of an application or 
+              a service making a call (on behalf of someone or something 
+              else) to an API or to another service
+          \end{itemize} 
+%\end{itemize} 
+In the following sections, we 
+make specific references to details spelled out in the 
+existing security standards (i.e. IETF's). For
+the purposes of validating against one of these standards, those 
+referenced
+documents should be consulted for a full explanation of details.
+
 Each major section is concluded by a Commentary subsection that provides
 some explanations of the detailed terms and concepts being referred to.
 The Commentary subsection may also provide recommended scenarios for how
-this specification might actually be realised. Note that the statements
+this specification might actually be realised. The statements
 in the Commentary subsections are non-normative and should not be
 considered part of precise specification; nevertheless, they are
 indicative of the intended spirit of this document.
+
+%For the purposes of validating against 
+%those standards, those referenced documents should be consulted for a 
+%full explanation of authentication process details. 
 
 \subsection{Role within the VO Architecture}
 
@@ -113,24 +144,82 @@ indicative of the intended spirit of this document.
 Fig.~\ref{fig:archdiag} shows the role this document plays within the
 IVOA architecture \citep{2010ivoa.rept.1123A}.
 
-\section{Authentication Discovery}
+\section{Authentication Mechanisms}
+\label{sec:authentication-mechanisms}
 
-Of the authentication mechanisms listed in section
-\ref{sec:authentication-mechanisms}, Authentication Mechanisms, some of
-them can be used exactly as their associated specifications dictate,
-including how to discover their support.  Some of them are intended to
-be used in an HTTP browser environment, and thus discovery is performed
-interactively by end users.  However, to support non-browser clients
-(standalone applications and command line tools), the follow procedures
-can be used to programmatically and interoperabily discover and use the
-associated authentication mechansim.  These procedures are extensions to
-the existing standards and are built upon HTTP standards themselves.
+The following authentication mechanisms are approved for use in 
+the IVOA-SSO profile.
+\begin{itemize}
+\item No authentication required.
+\item HTTP Basic Authentication
+\item Transport Layer Security (TLS) with passwords.
+\item Transport Layer Security (TLS) with client certificates.
+\item Cookies
+\item Open Authentication 2.0 (OAuth) based
+\item Security Assertion Markup Language (SAML)
+\item OpenID Connect (OIDC)
+\end{itemize}
 
-\subsection{IVOA Challenges}
+The authentication mechanism is associated with the interface provided 
+by the service
+%and registered in the IVOA registry.
+and advertised through the mechanism described in 
+section \ref{sec:auth_discovery}, ``Authentication Discovery''.
+Interfaces by which a user logs in to the SSO system SHALL support
+either
+TLS with client certificates, or TLS with passwords, or SAML, 
+or OAuth, or OpenID Connect or a combination of them.
+Services \textcolor{red}{MAY} be registered with an IVOA registry 
+as having a {\em WebService} type interface (as
+described in the VOResource document) SHALL support OAuth, or SHALL
+support cookies or SHALL support TLS with client
+certificates or SHALL require no authentication.
 
-Services that support one of the approved authentication mechanisms may
+\section{Authentication Process}
+\label{sec:auth_discovery}
+
+The authentication mechanisms listed in section
+\ref{sec:authentication-mechanisms}, ``Authentication Mechanisms'', 
+can be used in different ways. Most of them are intended to
+be used in an HTTP browser environment and, when they are used this 
+way, they can be used exactly as their associated specifications 
+dictate, including how to discover their support. The discovery is 
+performed interactively by end users.  
+However, to support non-browser clients
+(standalone applications and command line tools), a challenge-response 
+authentication protocol\footnote{Challenge-response authentication is 
+a family of protocols in which one party presents a question 
+("challenge") and another party must provide a valid answer 
+("response") to be authenticated. 
+\url{https://en.wikipedia.org/wiki/Challenge-response_authentication}. 
+Last visited April 30, 2024} \textcolor{red}{SHOULD 
+(or MUST?)} be used implementing the procedures described in
+the following subsection \ref{sec:bootstrapping-challenge} 
+``Bootstrapping and IVOA challenge-response protocol''. These procedures 
+allow to programmatically and interoperably discover and use the
+authentication mechanism associated to a service or application. They 
+are extensions to the existing standards and are built upon HTTP 
+standards themselves.
+
+\subsection{Challenge-response authentication}
+\label{challenge-response-auth}
+The challenge-response mechanism is a method used in authentication 
+protocols to verify the identity of a user or system. It involves the 
+exchange of challenges and responses between the verifier (typically a 
+server) and the entity being authenticated (the client).
+
+\subsubsection{Bootstrapping and IVOA challenge-response protocol}
+\label{sec:bootstrapping-challenge}
+When a client contacts a service (or application), first it has the need
+to know if there is \emph{optional}, \emph{required}, or \emph{no} authentication.
+For clients to initially find the level of authentication (i.e. to
+bootstrap), they can make anonymous HTTP GET or HTTP HEAD requests to
+the service's /capabilities endpoint. (See VO Support Interfaces (VOSI)
+(\citep{2017ivoa.spec.0524G}.)
+Services that support one of the approved authentication mechanisms in the section 
+\ref{sec:authentication-mechanisms} \textcolor{red}{SHOULD or MUST?}
 advertise this through the use of \emph{www-authenticate} HTTP response
-headers, as defined by \citep{std:RFC7235}. The basic form of this
+header, as defined by \citep{std:RFC7235}. The basic form of this
 header is:
 
 \begin{verbatim}
@@ -139,80 +228,126 @@ www-authenticate: {auth-scheme} {scheme-specific-params}
 
 Where \emph{auth-scheme} is a reference to the authentication mechanism,
 and \emph{scheme-specific-params} conveys service-specific details on
-the use of the identified authentication mechansim.
-
-For example:
-
+the use of the identified authentication mechanism. For example:
 \begin{verbatim}
-www-authenticate: ivoa_bearer standard_id="ivo://ivoa.net/sso#tls-with-password", access_url="https://example.org/login"
+www-authenticate: ivoa_bearer standard_id="value", access_url="value"
 \end{verbatim}
-
-As seen above, the \emph{scheme-specific-params} contains two standard
+with
+\begin{verbatim}
+standard_id="ivo://ivoa.net/sso#tls-with-password"
+access_url="https://example.org/login"
+\end{verbatim}
+The \emph{scheme-specific-params} contains two standard
 parameters:
-
 \begin{itemize}
-\item{\emph{standard\_id}} - Describes how to obtain the credentials,
-and refers to one of the authentication mechanisms outlined in this
-document. Clients can obtain tokens according to the rules for that
-standard ID.
+\item{\emph{standard\_id}} - Containing the SecurityMethod 
+\textcolor{red}{Editor's note: 
+propose to maintain the name}, i.e. one of the authentication mechanisms 
+outlined in section \ref{sec:authentication-mechanisms} 
+``Authentication Mechanisms'' of this document, it describes how to 
+obtain the credentials. Clients, for example, can obtain tokens 
+according to the rules for that standard ID.
 \item{\emph{access\_url}} - Describes where to obtain the credentials.
-It is the URL to use in the process.
+It is the URL to use in the challenge-response process.
 \end{itemize}
 
-The list of challenges and their meanings that are recognized by the
-IVOA are described below. Multiple chanllenges may be in a service's
-response. Clients can choose whichever one they understand or prefer.
-
-\textbf{Bearer} - The OAuth2 \citep{std:RFC6749} challenge for a Bearer
-token. It means one can autheticate with a Bearer token, but does not
-communicate the details of how such tokens can be obtained.
-
-\textbf{ivoa\_bearer} - The ivoa\_bearer challenge also means that one can
-authticate with an OAuth2 Bearer token, but will also include details on
-obtaining such tokens through the two parameters, \emph{standard\_id},
-and \emph{access\_url}.
-
-\textbf{ivoa\_x509} - The ivoa\_x509 challenge is an indication that you
-can authenticate with an X.509 client certificate (including self-signed
-proxy certificates). There are two variants: one with the two
-parameters, \emph{standard\_id}, and \emph{access\_url}, and one without. The
-one with parameters tells the client they can get an acceptable client
-cert via the described mechanism. (For sites that provide their own cert
-certificate authority.) The second, without params, says that the
-service accepts client certificates from external certificate
-authorities.
-
-\textbf{ivoa\_cookie} - The ivoa\_cookie challenge also means that one can
-authticate with an HTTP Cookie, and may also include details on
-obtaining cookies through the two parameters, \emph{standard\_id}, and
-\emph{access\_url}.
-
-\subsection{Bootstrapping}
-
-How does a client start and how does a service signal that there is
-\emph{optional}, \emph{required}, or \emph{no} authentication? First, i
- must be noted that the above www-authenticate challenges can be
- returned in any response, but typically in 200, 401, or 403. And it
- must be emphasized that any endpoint can respond with those challenges
- if something changes. (For example, a token expires, or an attempt to
- access a protected resource is made.)
-
-For clients to initially find the level of authentication (to
-bootstrap), they can make anonymous HTTP GET or HTTP HEAD requests to
-the service's /capabilities endpoint. (See VO Support Interfaces (VOSI)
-(\citep{2017ivoa.spec.0524G}.) Responses from this call to /capabilities
-include:
+The above www-authenticate challenges can be returned in any response 
+to /capabilities endpoint of a service, but 
+typically in responses with status code 200 (Successful HTTP request), 401 
+(Unauthorized), or 403 (Forbidden). Meaning:
 
 \begin{itemize}
-\item{\emph{200}} with no www-authenticate headers: anonymous access only (no authentication)
+\item{\emph{200}} with no www-authenticate headers: anonymous access only 
+(no authentication)
 \item{\emph{200}} with www-authenticate headers: authentication optional
 \item{\emph{401}} with www-authenticate headers: authentication required
 \end{itemize}
 
-[Editor's note: two changes to VOSI are required: 1) VOSI augmented to
+Any endpoint can respond with those challenges also
+if something changes, for example, after a token expires, or if an 
+attempt to  access to a protected resource is made.
+
+\textcolor{red}{[Editor's note: two changes to VOSI are required: 1) VOSI augmented to
 require http HEAD support for /capabilities endpoints, and 2) Modify
 VOSI to allow /capabilities to respond with 401 (or 403) (also affects
-TAP 1.1 sec 2; \&\ others?)]
+TAP 1.1 sec 2; \&\ others?)]}
+
+\subsubsection{List of approved authentication mechanisms and the
+corresponding identifiers (SecurityMethods)}
+
+The approved authentication mechanisms and the corresponding
+\xmlel{SecurityMethod}  to implement is
+listed in the table \ref{table:1}.
+
+\begin{table}[th]
+\begin{tabular}{p{0.33\textwidth}p{0.60\textwidth}} \sptablerule
+\textbf{SSO mechanism}&\textbf{\xmlel{<securityMethod>}}\\ \sptablerule
+ HTTP Basic Authentication &
+\xmlel{ivo://ivoa.net/sso\#BasicAA}\\
+TLS with password &  \xmlel{ivo://ivoa.net/sso\#tls-with-password} \\
+TLS with client certificate & \xmlel{ivo://ivoa.net/sso\#tls-with-certificate} \\
+Cookies & \xmlel{ivo://ivoa.net/sso\#cookie} \\
+Open Authentication & \xmlel{ivo://ivoa.net/sso\#OAuth} \\
+SAML &  \xmlel{ivo://ivoa.net/sso\#saml2.0} \\
+OpenID &  \xmlel{ivo://ivoa.net/sso\#OpenID} \\
+\sptablerule
+\end{tabular}
+\caption{List of SecurityMethods (corresponding of standard\_id(s)) for
+accepted authentication methods. }
+\label{table:1}
+\end{table}
+
+\subsubsection{List of challenges recognized by the IVOA and their 
+meanings}
+Multiple challenges may be in a service's
+response and clients can choose whichever one they understand or 
+prefer to perform the authentication operation.
+
+\textcolor{red}{[Editor's note: Past version was: The order of the 
+\xmlel{securityMethod} elements determines the priority
+of the method to use.  In the example above, the preferred method to
+access the service is  {\em SAML}, then {\em cookies}, and finally, if
+the others are not available, {\em OpenID}.}
+
+\textbf{bearer} - The OAuth2 \citep{std:RFC6749} challenge for a Bearer
+token. It means one can authenticate with a Bearer token, but does not
+communicate the details of how such tokens can be obtained.
+
+\textbf{ivoa\_bearer} - The ivoa\_bearer challenge also means that one 
+can authenticate with an OAuth2 bearer token, but will also include 
+details on obtaining such tokens through the two parameters, 
+\emph{standard\_id}, and \emph{access\_url}.
+
+\textbf{ivoa\_x509} - The ivoa\_x509 challenge is an indication that you
+can authenticate with an X.509 client certificate (including self-signed
+proxy certificates). There are two variants: one with the two
+parameters, \emph{standard\_id}, and \emph{access\_url}, and one 
+without. The
+one with parameters tells the clients they can get an acceptable client
+cert via the described mechanism. (For sites that provide their own 
+certificates through their own certificate authority.) The second, 
+without params, says that the service accepts client certificates from 
+external certificate authorities.
+
+\textbf{ivoa\_cookie} - The ivoa\_cookie challenge also means that one can
+authenticate with an HTTP Cookie, and may also include details on
+obtaining cookies through the two parameters, \emph{standard\_id}, and
+\emph{access\_url}.
+
+\textbf{ivoa\_saml} - The ivoa\_saml is an indication that you
+can authenticate through an Identity Provider supporting the SAML 
+protocol.
+
+
+\textbf{ivoa\_oauth} - The ivoa\_oauth \textcolor{red}{Sara's note: 
+OAuth is an authorization protocol and should be removed}
+
+\textbf{ivoa\_openid} - The ivoa\_openid is an indication that you
+can authenticate is an indication that you
+can authenticate through OpenID Connect (OIDC), is an identity 
+authentication protocol that is an extension of open authorization 
+(OAuth) 2.0 to standardize the process for authenticating and authorizing 
+users when they sign in to access digital services. 
 
 \subsection{Checking Authentication}
 
@@ -229,32 +364,45 @@ successful.
 
 \subsection{SecurityMethod}
 
-[Editor's note: Should this section remain?]
+\textcolor{red}{[Editor's note: Should this section remain? Sara: I 
+think yes, see the proposed fitting with the new version of the 
+document]}
 
 When a service is registered in an IVOA registry, that service's
 resource document MAY include metadata expressing conformance to one or
-more of the authentication mechanisms approved in the IVOA SSO profile.
-Such a service MUST implement those mechanisms as described in this
-document, and clients of the service MUST participate in the mechanism
-when calling the service. If a service does not provide any SSO
-specification it is assumed that no authentication is required.
-The registration of the service interface MAY contain an XML element
+more of the authentication mechanisms approved in the IVOA-SSO profile 
+(i.e. an XML element
 of type \xmlel{SecurityMethod} as specified in the XML schema for
-VOResource \citep{2018ivoa.spec.0625P}. The value of this element
+VOResource \citep{2018ivoa.spec.0625P}). 
+The value of the element \xmlel{SecurityMethod}
 distinguishes the authentication mechanism using the values stated in
-the sections below. Services registered without the metadata alluded to
-above need not support any authentication mechanism. If they do require
-authentication, they MAY use either the IVOA-standard mechanisms or
-others that are not IVOA standards, but they MUST specify a
-\xmlel{SecurityMethod} element.
+the table  \ref{table:1}.
+Such a service SHOULD implement those mechanisms as described in this
+document, and clients of the service MUST participate in the mechanism
+when calling the service. 
+\textcolor{red}{Editor's note: Suppress the sentence ``If a service does
+not provide any SSO specification it is assumed that no authentication 
+is required.'' The registration of the supported authentication
+mechanism is not mandatory, the client has to call the /capability 
+end-point of the service to know if and which authentication method is 
+supported} The declaration of the supported authentication mechanism in 
+the service registration is not mandatory, the client has to call the 
+\emph{/capability} end-point 
+of the service to know if and which authentication method is supported
+\textcolor{red}{Editor's (Sara) note: the following must be confirmed:
+they MAY use either the IVOA-standard mechanisms or
+others that are not IVOA standards, but they MUST answer with the
+challenge described in section \ref{sec:bootstrapping-challenge} 
+``Bootstrapping and IVOA challenge-response protocol''.}
 
 \subsection{Commentary}
 The IVOA SSO profile allows the development of a ``realm'' of
 interoperable services and clients.
 Service providers opt in to this realm by implementing this current
-standard and by registering accordingly in the IVOA registry.
-This allows clients to discover a secured service through the registry
-and to be able to use it without
+standard.
+%and by registering accordingly in the IVOA registry.
+The IVOA challenge-response authentication mechanism allows clients to
+know if a service is secured and to be able to use it without
 being customized for the details of the specific service.
 
 Services within the Virtual Observatory that are not intended to be
@@ -264,145 +412,105 @@ protected by passwords, are allowed.
 However, these private services SHOULD be reworked to follow the IVOA
 standard if they are later promoted to a wider audience.
 
-An example of a registration for a secured interface follows.
-\begin{lstlisting}[language=XML]
-<interface xmlns:vs='ivo://www.ivoa.net/xml/VODataService/v1.1'
-	xsi:type='vs:ParamHTTP'>
-	<accessURL>http://some.where/some/thing</accessURL>
-	<securityMethod>ivo://ivoa.net/sso#saml2.0</securityMethod>
-</interface>
-\end{lstlisting}
 
-More than one \xmlel{securityMethod} can be specified:
-\begin{lstlisting}[language=XML]
-<interface xmlns:vs='ivo://www.ivoa.net/xml/VODataService/v1.1'
-	xsi:type='vs:ParamHTTP'>
-	<accessURL>http://some.where/some/thing</accessURL>
-	<securityMethod>ivo://ivoa.net/sso#saml2.0</securityMethod>
-	<securityMethod>ivo://ivoa.net/sso#cookie</securityMethod>
-	<securityMethod>ivo://ivoa.net/sso#OpenID</securityMethod>
-</interface>
-\end{lstlisting}
+\section{Authentication mechanisms implementation and usage examples in 
+IVOA framework}
 
+Approved authentication mechanisms are briefly introduced with reference
+documents and usage examples in the IVOA framework. Some useful hints 
+are added.
 
-The order of the \xmlel{securityMethod} elements determines the priority
-of the method to use.  In the example above, the preferred method to
-access the service is  {\em SAML}, then {\em cookies}, and finally, if
-the others are not available, {\em OpenID}.
-
-\section{Authentication Mechanisms}
-\label{sec:authentication-mechanisms}
-
-The following authentication mechanisms are approved for use in the SSO
-profile.
-\begin{itemize}
-\item No authentication required.
-\item HTTP Basic Authentication
-\item Transport Layer Security (TLS) with passwords.
-\item Transport Layer Security (TLS) with client certificates.
-\item Cookies
-\item Open Authentication (OAuth)
-\item Security Assertion Markup Language (SAML)
-\item OpenID
-\end{itemize}
-
-The mechanism is associated with the interface provided by the service
-and registered in the IVOA registry.
-
-Services that are registered with a IVOA registry as having a
-{\em WebService} type interface (as
-described in the VOResource document) SHALL support OAuth, or SHALL
-support cookies or SHALL support TLS with client
-certificates or SHALL require no authentication.
-Interfaces by which a user logs in to the SSO system SHALL support
-either
-TLS with client certificates, or TLS with passwords, or SAML or a
-combination of  them.
-
-\subsection{List of approved authentication mechanisms and the
-corresponding securityMethod}
-
-The approved authentication mechanisms and the corresponding
-\xmlel{securityMethod}  to implement is
-listed in the table below.
-
-\begin{table}[th]
-\begin{tabular}{p{0.45\textwidth}p{0.64\textwidth}} \sptablerule
-\textbf{SSO mechanism}&\textbf{\xmlel{<securityMethod>}}\\ \sptablerule
- HTTP Basic Authentication &
-\xmlel{ivo://ivoa.net/sso\#BasicAA}\\
-TLS with password &  \xmlel{ivo://ivoa.net/sso\#tls-with-password} \\
-TLS with client certificate & \xmlel{ivo://ivoa.net/sso\#tls-with-certificate} \\
-Cookies & \xmlel{ivo://ivoa.net/sso\#cookie} \\
-Open Authentication & \xmlel{ivo://ivoa.net/sso\#OAuth} \\
-SAML &  \xmlel{ivo://ivoa.net/sso\#saml2.0} \\
-OpenID &  \xmlel{ivo://ivoa.net/sso\#OpenID} \\
-\sptablerule
-\label{table:SMtable}
-\end{tabular}
-\end{table}
-
-
-\section{HTTP Basic Authentication}
-\subsection{Requirements}
+\subsection{HTTP Basic Authentication}
+\subsubsection{Requirements}
 Services using HTTP basic authentication SHALL use the authentication
 mechanism described in the RFC7235 \citep{std:RFC7235}
-that updates RFC2617  \citep{std:RFC2617}.
-Interfaces using this mechanism SHALL be registered with the security
+that updates RFC2617 \citep{std:RFC2617}.
+Interfaces using this mechanism SHOULD respond to a call to the 
+\emph{/capabilities} endpoint with an HTTP header with the basic form:
+\begin{verbatim}
+   www-authenticate: ivoa_bearer 
+                    standard_id="ivo://ivoa.net/sso#BasicAA",
+                    access_url="https://example.org/login"
+\end{verbatim}
+and optionally they MAY be registered with the security
 method
-
+ 
  \texttt{ivo://ivoa.net/sso\#BasicAA}
 
-\subsection{Commentary}
+\subsubsection{Commentary}
 HTTP provides a simple challenge-response authentication framework that
 can be used by a server to challenge
 a client request and by a   client to provide authentication
 information.
 The HTTP authentication framework does not define a single mechanism for
 maintaining the confidentiality of credentials.
-HTTP depends on the security properties of the underlying transport  or
+HTTP depends on the security properties of the underlying transport or
 session-level connection to provide
-confidential transmission of   header fields. Connection secured with
+confidential transmission of the header fields. Connection secured with
 TLS are RECOMMENDED prior to exchanging any credentials.
 
 The ``HTTP basic authentication'' SHOULD be used with particular
 attention as sensible
 information (password) are sent over the wire in base64 encoding (which
 can be easily converted to plaintext) exposing
-the user to the possibility her credentials to be stolen.
+the user to the possibility her credentials being stolen.
 
-\section{Details of TLS}
-\subsection{Requirements}
+\subsection{Details of TLS}
+\subsubsection{Requirements}
 Services using Transport Layer Security (TLS) SHALL do so according to
 the TLS v1.2 standard RFC5246 \citep{std:RFC5246}.
 
-\subsection{Commentary}
-TLS supersedes the Secure Sockets Layer that is an outdated
+\subsubsection{Commentary}
+TLS supersedes the Secure Sockets Layer which is an outdated
 cryptographic protocol.
 TLS v1.0 was based on SSL v3.0; the current version of TLS is V1.2
 described in by \citet{std:RFC5246}.
-TLS v1.2 is backwards compatible with TLS v1.0, TLS v1.1 and SSL v3.0.
+TLS v1.2 is backward compatible with TLS v1.0, TLS v1.1 and SSL v3.0.
 ``TLS versions 1.0, 1.1, and 1.2, and SSL 3.0 are very similar, and use
 compatible ClientHello messages;
-thus, supporting all of them is   relatively easy.[...] TLS 1.2 clients
+thus, supporting all of them is relatively easy.[...] TLS 1.2 clients
 that wish to support SSL 2.0 servers MUST
 send  version 2.0 CLIENT-HELLO messages defined in SSL2.''
 \citep{std:RFC5246}.
 
-\section{Details of TLS-with-client-certificate}
-\subsection{Requirements}
+\subsection{Details of TLS-with-client-certificate}
+\subsubsection{Requirements}
 Certificates SHALL be transmitted and checked according to the TLS v1.2
 standard RFC5246.
 
 Services implementing TLS MUST support certificate chains including
 proxy certificates according to RFC6818  \citep{std:RFC6818}.
 
-Interfaces using this mechanism SHALL be  registered with the security
-method
+There are two variants of interfaces using this mechanism: 
+\begin{enumerate}
+\item with the two
+parameters, \emph{standard\_id}, and \emph{access\_url} tells the 
+clients they can get an acceptable client
+cert via the described mechanism. For sites that provide their own
+certificates through their own certificate authority. In this case,
+interfaces SHOULD respond to a call to the 
+/capabilities endpoint with an HTTP header with the basic form:
+\begin{verbatim}
+   www-authenticate: ivoa_x509 
+          standard_id="ivo://ivoa.net/sso#tls-with-certificate",
+          access_url="https://ra.org"
+\end{verbatim}
+\item without params, says that the service accepts client certificates
+from external certificate authorities. In this case,
+interfaces SHOULD respond to a call to the 
+\emph{/capabilities} endpoint with an HTTP header with the basic form:
+\begin{verbatim}
+   www-authenticate: ivoa_x509 
+          standard_id="ivo://ivoa.net/sso#tls-with-certificate"
+\end{verbatim}
+\end{enumerate}
+
+Interfaces using this mechanism, optionally, \textcolor{red}{MAY} be  
+registered with the security method
 
 \texttt{ivo://ivoa.net/sso\#tls-with-certificate}
 
-\subsection{Commentary}
+\subsubsection{Commentary}
 When Mutual Certificate Authentication is configured for REST services,
 both the client and the service perform
 identity verification or authentication through X.509 certificates.
@@ -410,8 +518,8 @@ identity verification or authentication through X.509 certificates.
 The client authenticates the service during the initial SSL handshake,
 when the server sends the client a certificate to authenticate itself.
 
-\section{Details of TLS-with-password}
-\subsection{Requirements}
+\subsection{Details of TLS-with-password}
+\subsubsection{Requirements}
 The username and password SHALL be passed in the message protected by
 the TLS mechanism, and, with a valid password credential, a Bearer token
 SHALL be returned, also protected by the TLS mechanism.
@@ -431,44 +539,61 @@ curl -d 'username={userid}' -d 'password={password}' https://example.org/login
 < x-vo-bearer: {token}
 \end{verbatim}
 
-When invalid credentials are used, the service resonsds with a 401
-response code and optional message in the response body. For example,
+When invalid credentials are used, the service responds with a 401 code
+response with www-authenticate headers: invalid username or password  
+and optional message in the response body. For example,
 
 \begin{verbatim}
 curl -d 'username={userid}' -d 'password={password}' https://example.org/login
-< http/1.1 401
-invalid username or password
+< http/1.1 401 
+< www-authenticate: invalid username or password
 \end{verbatim}
 
-Interfaces using this mechanism SHALL be registered with the security
+Interfaces using this mechanism SHOULD respond to a call to the 
+\emph{/capabilities} endpoint with an HTTP header with the basic form:
+\begin{verbatim}
+   www-authenticate: ivoa_bearer 
+                    standard_id="ivo://ivoa.net/sso#tls-with-password"
+                    access_url="https://example.org/login"
+\end{verbatim}
+
+and optionally, \textcolor{red}{MAY} be  registered with the security
+method MAY be registered with the security
 method
 
-\texttt{ivo://ivoa.net/sso\#tls-with-password}
+ \texttt{ivo://ivoa.net/sso\#tls-with-password}
 
-\subsection{Commentary}
+\subsubsection{Commentary}
 ``HTTP basic authentication'' passes the user-name and password in the
 HTTP headers,
 assuming that the credentials are not a natural part of the message
-body. This standard applies the TLS-with-Password mechanism only to the
+body. This standard applies the TLS-with-password mechanism only to the
 special case of logging in to the SSO realm.
 Hence, the user-name and password are logically part of the message
 body, not the message header.
 
-\section{The use of Cookies}
-\subsection{Requirements}
+\subsection{The use of Cookies}
+\subsubsection{Requirements}
 Cookie-Based Authentication uses server side cookies to authenticate the
 user on every request.
 The way to manage  cookies for authentication is described in RFC6265
 \citep{std:RFC6265}.
 
-Interfaces using this mechanism SHALL  be registered with the security
+Interfaces using this mechanism SHOULD respond to a call to the 
+\emph{/capabilities} endpoint with an HTTP header with the basic form:
+\begin{verbatim}
+   www-authenticate: ivoa_cookie
+                    standard_id="ivo://ivoa.net/sso#cookie"
+\end{verbatim}
+
+and optionally, \textcolor{red}{MAY} be registered with the security
 method
 
 \texttt{ivo://ivoa.net/sso\#cookie}
 
 
-\subsection{Commentary}
-RESTful web services MAY support  session-based authentication, either
+\subsubsection{Commentary}
+RESTful web services MAY support session-based authentication, either
 by establishing a session token via a POST or
 by using an API key as a POST body argument or as a cookie.
 User-names, passwords, session tokens, and API keys SHOULD not appear in
@@ -482,21 +607,29 @@ intrinsically valuable.
 \label{fig:saml}
 \end{figure}
 
-\section{Details on SAML authentication}
-\subsection{Requirements}
+\subsection{Details on SAML authentication}
+\subsubsection{Requirements}
 Services using SAML authentication mechanisms SHALL do so according to
 the
 saml-core-2.0-os OASIS standard \citep{std:SAML}.
 SAML includes protocols and protocol bindings and security
 \citep{std:SAMLB}.
 
-Interfaces using this mechanism SHALL be registered with the security
+Interfaces using this mechanism SHOULD respond to a call to the 
+\emph{/capabilities} endpoint with an HTTP header with the basic form:
+\begin{verbatim}
+   www-authenticate: ivoa_saml 
+                    standard_id="ivo://ivoa.net/sso#saml2.0"
+                    access_url="https://example.org/login"
+\end{verbatim}
+
+and optionally, \textcolor{red}{MAY} be registered with the security
 method
 
 \texttt{ivo://ivoa.net/sso\#saml2.0}
 
 
-\subsection{Commentary}
+\subsubsection{Commentary}
 SAML presumes two primary roles in any transaction: the organisation
 where the identity is established,
 known as the Identity Provider (``IdP''), or Asserting Party (``AP'');
@@ -505,7 +638,7 @@ identity, known as the Service Provider (``SP''),
 or Relying Party (``RP'').
 
 A user attempts to access an application with the Service Provider.
-The SP needs to establish the identity of this user, and so sends an
+The SP needs to establish the identity of this user, and so, sends an
 authentication request to the Identity Provider.
 
 The user authenticates with the IdP (IdP is taking care of the
@@ -526,11 +659,39 @@ by which a centralized discovery service can provide a requesting
 service provider with the unique identifier of an
 IdP that can authenticate the user.
 
+The OAuth 2.0 specification defines a delegation protocol that is useful
+for conveying authorization decisions across a network of web-enabled
+applications and APIs. OAuth is used in a wide variety of applications,
+including providing mechanisms for user authentication.
 
-\section{Details on OAuth}
-\subsection{Requirements}
-Services using OAuth authentication mechanisms SHALL do so according to
-the RFC6749 \citep{std:RFC6749}.
+The OAuth 2.0 specification defines a delegation protocol that is
+useful for conveying authorization decisions across a network of
+web-enabled applications and APIs. OAuth is used in a wide variety
+of applications, including providing mechanisms for user authentication.
+
+\subsection{Details on OAuth based authentication}
+\textcolor{red}{Sara's note: must well specify that OAuth2 is not an 
+authentication protocol. It is a base for authentication tasks.}
+\subsubsection{Requirements}
+The OAuth 2.0 specification defines a \emph{delegation}
+protocol that is useful for conveying authorization decisions across a 
+network of web-enabled applications and APIs. OAuth is used in a wide 
+variety of applications, including providing mechanisms for user 
+authentication but it is not an authentication protocol\footnote{
+Authentication is the process of verifying a claimed identity of a 
+user, device, or other entity in a computer system.  It means 
+confirming that a user or client is who he says he is and a full 
+authentication protocol generally includes a number of attributes 
+about the user (i.e. a unique identifier, an email address, etc.). 
+Authorization is a process by which a server determines if the client 
+has permission to use a resource or access a file. Authorization is 
+usually coupled with authentication so that the server has some concept 
+of who the client is that is requesting access.}. It must not be 
+mistakenly used as 
+such\footnote{https://oauth.net/articles/authentication/ - Last visited
+May 2, 2024}.
+Services using OAuth 2.0 as base for the authentication mechanisms SHALL
+do so according to the RFC6749 \citep{std:RFC6749}.
 
 Clients perform authentication with OAuth Bearer tokens using the
 \emph{authorization} header. For example:
@@ -541,46 +702,63 @@ curl -H 'authorization: Bearer {token}' https://example.org/tap
 < x-vo-authenticated: {username}
 \end{verbatim}
 
-Interfaces using this mechanism SHALL be registered with the security
+Interfaces using this mechanism SHOULD respond to a call to the 
+/capabilities endpoint with an HTTP header with the basic form:
+\begin{verbatim}
+   www-authenticate: ivoa_bearer 
+                    standard_id="ivo://ivoa.net/sso#OAuth"
+                    access_url="https://example.org/login"
+\end{verbatim}
+
+and optionally, \textcolor{red}{MAY} be registered with the security
 method
 
 \texttt{ivo://ivoa.net/sso\#OAuth}
 
 
-\subsection{Commentary}
+\subsubsection{Commentary}
 Open Authentication 2.0 (also in conjunction with OpenID Connect) is
 actually the adopted standard
 to handle identity in the framework of RESTful web services.
-OAuth is used when an application is making a request on behalf of a
+OAuth 2.0 is used when an application is making a request on behalf of a
 user.
 
-OAuth introduces the notion of an `authorization token', a `refresh
+OAuth 2.0 introduces the notion of  `authorization token',  `refresh
 token' and Authorization Service (AS).
 The `authorization' token states that the client application has the
 right to access services on the server  (see Fig.~\ref{fig:oauth}).
 However, it does not supersede any access control decisions that the
 server-side application might make.
 
-OAuth protocol can be implemented  to delegate credential from an
+OAuth 2.0 protocol can be implemented  to delegate credential from an
 application to another.
 
-\section{Details on OpenID}
-\subsection{Requirements}
+\subsection{Details on OpenID}
+\subsubsection{Requirements}
+OpenID Connect is an open standard that defines an
+interoperable way to use OAuth 2.0 to perform user authentication. 
 Services using OpenID authentication mechanisms SHALL do so according to
 the OpenID Foundation standards \citep{std:openid}
 
-Interfaces using this mechanism SHALL  be registered with the security
+Interfaces using this mechanism SHOULD respond to a call to the 
+\emph{/capabilities} endpoint with an HTTP header with the basic form:
+\begin{verbatim}
+   www-authenticate: ivoa_openid 
+                    standard_id="ivo://ivoa.net/sso#OpenID"
+                    access_url="https://example.org/login"
+\end{verbatim}
+
+and optionally, \textcolor{red}{MAY}  be registered with the security
 method
 
 \texttt{ivo://ivoa.net/sso\#OpenID}
 
-
-\subsection{Commentary}
+\subsubsection{Commentary}
 OpenID is an open and decentralized authentication and identity system.
 OpenID relying parties do not manage end user credentials
 such as passwords or any other sensitive information which makes
 authentication and identity management much simpler and secure.
-In a RESTful environment OpenID Connect \citep{std:openidconnect} is
+In a RESTful environment, OpenID Connect \citep{std:openidconnect} is
 commonly adopted as authentication solution. ``OpenID Connect  is a
 simple identity
 layer on top of the OAuth 2.0 protocol, which allows computing clients
@@ -590,12 +768,15 @@ to verify the identity of an end-user based on the authentication
  REST-like manner.'' \citep{std:openid}.
 
 \section{Conclusions}
-This document presents a list of security standards that may be
-implemented when developing a service that requires authentication.
-The list includes the most frequently used standards at the time this
-document has been produced.
+This document presents how to use existing security standards to make
+IVOA compliant a service that requires authentication and how to 
+implement its clients.
 
-In this document we are presenting two types of  SSO protocols:
+\textcolor{red}{Editor's (Sara) note: all the remaining part of the 
+conclusions can be deleted. Not essential and, to introduce identity 
+federation and its use, we need some more thoughts, in my opinion.}
+
+The presented IVOA-SSO protocols can be applied in two contexts:
 ``local'' and ``federated''.
 Local SSO  provides solutions for keeping a repository of user-names
 and passwords that could be used transparently across several internal
@@ -630,6 +811,9 @@ More complex projects/services that need to offer resources to large
 communities should prefer federated identities.
 For example SAML2.0 is the protocol used to build the EduGain World wide
 identity federation  for education and research.
+
+\textcolor{red}{Editor's (Sara) note: This appendix with the section 
+``VOResource  SecurityMethod'' could be deleted}
 
 \appendix
 \section{VOResource  SecurityMethod}
@@ -718,12 +902,22 @@ elementFormDefault="unqualified" attributeFormDefault="unqualified" version="1.0
 
 \section{Changes from Previous Versions}
 
-
 \subsection {Changes from v. 1.01}
 \begin{itemize}
 \item We remove all the references to SOAP as deprecated from IVOA
-\item We add new security methods and relative discussion sessions:
-OpenID, SAML, Cookies, HTTP basic authentication
+\item We add new security methods and relative discussion sessions: 
+	OpenID, SAML, Cookies, HTTP basic authentication
+\end{itemize}
+
+\textcolor{red}{Editor's (Sara) note: Need to be checked, probably more
+detailed}
+
+\subsection {Changes from v. 2.0}
+\begin{itemize}
+\item We describe a new bootstrapping authentication mechanism through
+	a challenge-response authentication protocol.
+\item We make optional the registration of the SecurityMethod also in 
+	case of ``authentication required''
 \end{itemize}
 
 
