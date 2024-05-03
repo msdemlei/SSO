@@ -12,6 +12,9 @@ env:
 on:
   pull_request:
     types: [opened, synchronize, reopened]
+push:
+    branches:
+      - major_editing
 
 jobs:
   build:
