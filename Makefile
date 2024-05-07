@@ -17,13 +17,21 @@ DOCTYPE = WD
 # be called $(DOCNAME).tex
 SOURCES = $(DOCNAME).tex
 
-# List of pixel image files to be included in submitted package 
+# List of pixel image files to be included in submitted package
 FIGURES = SSO_image001.png SSO_image002.png SSO_image003.png
 
 # List of PDF figures (for vector graphics)
-VECTORFIGURES = 
+VECTORFIGURES =
 
 # Additional files to distribute (e.g., CSS, schema files, examples...)
-AUX_FILES = 
+AUX_FILES =
 
-include ivoatex/Makefile
+-include ivoatex/Makefile
+
+ivoatex/Makefile:
+	@echo "*** ivoatex submodule not found.  Initialising submodules."
+	@echo
+	git submodule update --init
+
+test:
+	@echo "No tests defined yet"
